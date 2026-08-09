@@ -307,16 +307,97 @@ FROM (SELECT DISTINCT product_id FROM Products ) p
 LEFT JOIN temporary r 
 ON p.product_id = r.product_id AND r.rn = 1
 
-#
+#1204. Last Person to Fit in the Bus
+# Write your MySQL query statement below
+WITH CumulativeWeight AS (
+    SELECT 
+        person_name,
+        turn,
+        SUM(weight) OVER (ORDER BY turn) AS total_weight
+    FROM Queue
+)
+SELECT person_name
+FROM CumulativeWeight
+WHERE total_weight <= 1000
+ORDER BY turn DESC
+LIMIT 1;
 
+#1907. Count Salary Categories
+# Write your MySQL query statement below
+WITH temp AS (SELECT
+account_id, 
+IF(income < 20000, 'Low Salary',
+           IF(income <= 50000, 'Average Salary', 'High Salary')
+        ) AS category
+FROM Accounts) 
+,categories AS (
+    SELECT 'Low Salary' AS category
+    UNION ALL SELECT 'Average Salary'
+    UNION ALL SELECT 'High Salary'
+)
+SELECT c.category, COUNT(t.account_id) AS accounts_count
+FROM categories c
+LEFT JOIN temp t ON c.category = t.category 
+GROUP BY c.category;
 
+#1978. Employees Whose Manager Left the Company
+# Write your MySQL query statement below
+# tìm nhân viên lương dưới 30000 đô và quản lí đã rời khỏi công ti, khi 1 quản lý rời khỏi công ti thì thông tin bị xoá khỏi bảng nhưng trong bảo cáo vẫn có id của họ 
+SELECT employee_id 
+FROM Employees 
+WHERE salary < 30000
+AND manager_id is not null 
+AND manager_id NOT IN (select employee_id from Employees)
+ORDER BY employee_id ;
 
+#626. Exchange Seats
+# Write your MySQL query statement below
+SELECT 
+CASE 
+WHEN id % 2 !=0 AND id = (SELECT COUNT(*) FROM Seat) THEN id #neu id la odd va id la id cuoi cung vi count la se dem het id thi id cuoi = so luong id 
+WHEN id % 2 !=0 THEN id + 1 
+ELSE id -1 
+END AS id, 
+student 
+FROM Seat 
+ORDER BY id ASC; 
 
+#1341. Movie Rating
+# Write your MySQL query statement below
+(SELECT Users.name AS results 
+FROM Users 
+JOIN MovieRating 
+ON MovieRating.user_id = Users.user_id 
+GROUP BY MovieRating.user_id
+ORDER BY COUNT(MovieRating.user_id) DESC,  Users.name ASC
+LIMIT 1)
+UNION ALL 
+(SELECT Movies.title AS results 
+FROM Movies 
+JOIN MovieRating 
+ON Movies.movie_id = MovieRating.movie_id
+WHERE created_at >= '2020-02-01'
+AND created_at <= '2020-02-29'
+GROUP BY MovieRating.movie_id 
+ORDER BY AVG(MovieRating.rating) DESC, Movies.title ASC
+LIMIT 1) ;
 
-
-
-
-
+#1321. Restaurant Growth
+WITH temporary AS (
+    SELECT visited_on, SUM(amount) AS amount
+    FROM Customer
+    GROUP BY visited_on
+)
+SELECT 
+    a.visited_on,
+    SUM(b.amount) AS amount,
+    ROUND(SUM(b.amount) / 7.0, 2) AS average_amount
+FROM temporary a
+JOIN temporary b 
+  ON DATEDIFF(a.visited_on, b.visited_on) BETWEEN 0 AND 6
+GROUP BY a.visited_on
+HAVING COUNT(b.visited_on) = 7
+ORDER BY a.visited_on ASC;
 
 #602. Friend Requests II: Who Has the Most Friends
 # Write your MySQL query statement below
