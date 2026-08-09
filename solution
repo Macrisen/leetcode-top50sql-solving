@@ -145,3 +145,121 @@ GROUP BY contest_id
 ORDER BY percentage DESC, contest_id ASC ; 
 #FROM WHERE GROUP BY HAVING SELECT ORDER BY LIMIT 
 
+#1211. Queries Quality and Percentage
+# Write your MySQL query statement below
+SELECT query_name
+, ROUND(AVG(rating/position),2)AS quality 
+, ROUND(AVG(IF(rating < 3 ,1,0)) * 100,2) AS poor_query_percentage
+FROM Queries
+WHERE query_name IS NOT NULL
+GROUP BY query_name;
+
+#1193. Monthly Transactions I
+# Write your MySQL query statement below
+SELECT 
+DATE_FORMAT(trans_date, '%Y-%m') AS month
+, country 
+, COUNT(id) AS trans_count
+, SUM(IF(state = 'approved',1,0)) AS approved_count
+, SUM(amount) AS trans_total_amount 
+, SUM(IF(state = 'approved',amount, 0 )) AS approved_total_amount 
+FROM Transactions 
+GROUP BY month, country; 
+
+#1174. Immediate Food Delivery II
+# Write your MySQL query statement below
+SELECT ROUND(AVG(IF(order_date = customer_pref_delivery_date, 1,0 )) * 100,2) AS immediate_percentage
+FROM Delivery
+WHERE (customer_id, order_date) IN (
+    SELECT customer_id, MIN(order_date) 
+    FROM Delivery 
+    GROUP BY customer_id
+)
+
+#550. Game Play Analysis IV
+# Write your MySQL query statement below
+SELECT ROUND(
+    COUNT(DISTINCT player_id) / 
+    (SELECT COUNT(DISTINCT player_id) FROM Activity)
+    ,2) #because there are filter where so we have to use subquery 
+AS fraction
+FROM Activity 
+WHERE (player_id,event_date) IN (SELECT player_id, DATE_ADD(MIN(event_date), INTERVAL 1 DAY)
+FROM Activity 
+GROUP BY player_id )
+
+#2356. Number of Unique Subjects Taught by Each Teacher
+# Write your MySQL query statement below
+SELECT teacher_id, COUNT(DISTINCT subject_id) AS cnt 
+FROM Teacher 
+GROUP BY teacher_id; 
+#count()
+
+#1141. User Activity for the Past 30 Days I
+# Write your MySQL query statement below
+select activity_date AS day
+, COUNT(DISTINCT user_id) AS active_users 
+FROM Activity 
+WHERE activity_date BETWEEN '2019-06-28' AND '2019-07-27'
+GROUP BY activity_date; 
+
+1070. Product Sales Analysis III
+# Write your MySQL query statement below
+SELECT product_id, year AS first_year, quantity, price 
+FROM Sales 
+WHERE (product_id, year) IN (SELECT product_id,MIN(year) FROM Sales GROUP BY product_id)
+;
+#GROUP BY product_id ko nen
+#neu chon group by product o ngoai dau ngoac thi MySQL ko sap xep duoc quantity voi price
+
+#596. Classes With at Least 5 Students
+# Write your MySQL query statement below
+SELECT class 
+FROM Courses 
+GROUP BY class
+HAVING COUNT(student) >= 5;
+
+#1729. Find Followers Count
+# Write your MySQL query statement below
+SELECT user_id, COUNT(follower_id) AS followers_count
+FROM Followers 
+GROUP BY user_id
+ORDER BY user_id ASC;
+
+#619. Biggest Single Number
+# Write your MySQL query statement below
+WITH cte AS ( 
+    SELECT num 
+    FROM MyNumbers 
+    GROUP BY num 
+    HAVING COUNT(num) = 1
+)
+SELECT MAX(num) as num 
+FROM cte
+
+#1045. Customers Who Bought All Products
+# Write your MySQL query statement below
+SELECT customer_id 
+FROM Customer 
+JOIN Product 
+ON Customer.product_key = Product.product_key
+GROUP BY customer_id 
+HAVING COUNT(DISTINCT(Customer.product_key)) >= (SELECT COUNT(*) FROM Product) ; #only use for aggregate functgion (MIN, MAX, COUNT, SUM)
+#distinct de tranh cac ham trung lap neu dung count ko thi se dem ra duoc toi 6 product_key nhung neu dung DISTINCT thi se dem ra duoc 2 
+
+#1731. The Number of Employees Which Report to Each Employee
+# Write your MySQL query statement below
+SELECT 
+    a.employee_id,
+    a.name,
+    COUNT(b.employee_id) AS reports_count,
+    ROUND(AVG(b.age)) AS average_age
+FROM Employees a
+JOIN Employees b 
+  ON a.employee_id = b.reports_to
+GROUP BY a.employee_id, a.name
+ORDER BY a.employee_id ASC;
+
+
+
+
